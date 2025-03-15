@@ -1,0 +1,68 @@
+[gd_scene load_steps=11 format=3 uid="uid://boq8xdkifwg6m"]
+
+[ext_resource type="Shader" path="res://assets/sea_background.gdshader" id="1_i3xjy"]
+[ext_resource type="TileSet" uid="uid://08aqnm3l5cds" path="res://assets/tile_sets/main_scene_tile_set.tres" id="2_5hm40"]
+[ext_resource type="Script" path="res://assets/scripts/main_scene.gd" id="2_8lyes"]
+[ext_resource type="Script" path="res://assets/scripts/main_map.gd" id="2_p37of"]
+[ext_resource type="Script" path="res://assets/scripts/mini_map_root.gd" id="4_e1otb"]
+[ext_resource type="Texture2D" uid="uid://db6juwk5ve6ea" path="res://assets/images/terrain/deep_ocean_battlemap.png" id="4_oa2ek"]
+[ext_resource type="Script" path="res://assets/scripts/generate_hex_points.gd" id="7_od1qt"]
+
+[sub_resource type="GDScript" id="GDScript_dh7uu"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_reexj"]
+shader = ExtResource("1_i3xjy")
+shader_parameter/speed = 1.0
+shader_parameter/amplitude = 0.02
+script = SubResource("GDScript_dh7uu")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_uil30"]
+shader = ExtResource("1_i3xjy")
+shader_parameter/speed = 0.2
+shader_parameter/amplitude = 0.025
+
+[node name="MainScene" type="Node2D"]
+material = SubResource("ShaderMaterial_reexj")
+script = ExtResource("2_8lyes")
+
+[node name="SeaBackground" type="Sprite2D" parent="."]
+z_index = -1
+material = SubResource("ShaderMaterial_uil30")
+position = Vector2(576, 324)
+scale = Vector2(2, 2)
+texture = ExtResource("4_oa2ek")
+
+[node name="MainMap" type="TileMapLayer" parent="."]
+z_index = 1
+tile_set = ExtResource("2_5hm40")
+rendering_quadrant_size = 1
+script = ExtResource("2_p37of")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(574, 325)
+
+[node name="Units" type="Node2D" parent="."]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="MiniMapContainer" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="MiniMapRoot" type="Node2D" parent="CanvasLayer/MiniMapContainer"]
+position = Vector2(0, 648)
+script = ExtResource("4_e1otb")
+mini_map_scale = null
+
+[node name="MiniMapImage" type="Sprite2D" parent="CanvasLayer/MiniMapContainer/MiniMapRoot"]
+
+[node name="ViewportIndicator" type="Polygon2D" parent="CanvasLayer/MiniMapContainer/MiniMapRoot"]
+color = Color(1, 0, 0, 0.5)
+polygons = [Vector2(-48, -48), Vector2(48, -48), Vector2(48, 48), Vector2(-48, 48)]
+
+[node name="UnitMarkers" type="Node2D" parent="CanvasLayer/MiniMapContainer/MiniMapRoot"]
+
+[node name="Node2D" type="Node2D" parent="."]
+script = ExtResource("7_od1qt")
