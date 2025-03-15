@@ -1,0 +1,12 @@
+Sprite2D
+Node2D
+ReferenceRect
+Control
+Container
+TextureRect
+CanvasLayer
+Window
+TileMap
+Polygon2D
+TileMapLayer
+Camera2D

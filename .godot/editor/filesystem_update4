@@ -1,0 +1,13 @@
+res://assets/main_scene.tscn
+res://assets/sea_background.gdshader
+res://assets/tile_sets/main_scene_tile_set.tres
+res://assets/scripts/generate_hex_points.gd
+res://assets/scenes/Unit.tscn
+res://assets/scripts/units.gd
+res://assets/scripts/main_scene.gd
+res://assets/scripts/main_map.gd
+res://assets/scripts/mini_map.gd
+res://assets/scripts/unit.gd
+res://assets/scenes/Torpedo.tscn
+res://assets/scripts/torpedo.gd
+res://assets/scripts/hex_utils.gd
