@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://assets/scripts/torpedo.gd" id="1_s1uwn"]
 [ext_resource type="Texture2D" uid="uid://cb67em55r6do7" path="res://assets/images/units/torpedo_up.png" id="2_155nf"]
 
-[node name="Node2D" type="Node2D"]
+[node name="Torpedo" type="Node2D"]
 script = ExtResource("1_s1uwn")
 
 [node name="Icon" type="Sprite2D" parent="."]

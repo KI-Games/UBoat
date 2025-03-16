@@ -1,4 +1,4 @@
-# main_scene.gd
+# res://main_scene.gd
 extends Node2D
 
 @onready var camera = $Camera2D
@@ -7,40 +7,54 @@ extends Node2D
 var turn_active: bool = false
 
 func _ready():
-	if camera: camera.position = units.units[0].position
-	call_deferred("initialize_mini_map")
+	await get_tree().process_frame
+	if units and units.units.size() > 0 and camera:
+		camera.position = units.units[0].position
+	initialize_mini_map()
 
 func initialize_mini_map():
-	mini_map_container.camera = camera
-	mini_map_container.units = units.units
-	if units and units.units.size() > 0:
-		camera.position = units.units[0].position
+	if mini_map_container:
+		mini_map_container.camera = camera
+		mini_map_container.units = units.units if units else []
 
 func _input(event):
-	if turn_active or units.units.size() == 0:
+	if not units or units.units.size() == 0:
+		return
+	if turn_active:
 		return
 	turn_active = true
+	var player = units.units[0]
 	if event.is_action_pressed("ui_right"):
-		units.units[0].turn_right()
+		player.turn_right()
 	elif event.is_action_pressed("ui_left"):
-		units.units[0].turn_left()
+		player.turn_left()
 	elif event.is_action_pressed("ui_up"):
-		units.units[0].move(1)
+		player.move(1)
 	elif event.is_action_pressed("ui_down"):
-		units.units[0].move(-1)
-	elif event.is_action_pressed("ui_accept"):  # Spacebar to fire
-		units.units[0].fire_torpedo(Vector2i(2, 0))  # Example target
-	camera.position = units.units[0].position
-	await get_tree().create_timer(0.5).timeout  # Turn delay
+		player.move(-1)
+	elif event.is_action_pressed("ui_accept"):
+		player.fire_torpedo(Vector2i(2, 0))
+	if camera:
+		camera.position = player.position
+	await get_tree().create_timer(0.5).timeout
 	process_enemies()
+	check_collisions()
 	turn_active = false
 
 func process_enemies():
+	if not units:
+		return
 	for unit in units.units:
-		if not unit.is_player:
-			# Simple patrol: move forward, turn randomly
-			unit.move(1)
-			if randf() < 0.3: unit.turn_left()
-			elif randf() < 0.6: unit.turn_right()
-			# Add detection and attack logic here later
-	print("Enemy turn processed")
+		if not unit.is_player and unit.has_method("patrol"):
+			unit.patrol()
+
+func check_collisions():
+	if not units or units.units.size() == 0:
+		return
+	var player = units.units[0]
+	for enemy in units.units:
+		if not enemy.is_player:
+			for player_hex in player.occupied_hexes:
+				if enemy.occupied_hexes.has(player_hex):
+					print("Collision detected between player at ", player_hex, " and ", enemy.type)
+					return

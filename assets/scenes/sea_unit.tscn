@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://chckpmq5ofwo4"]
+
+[ext_resource type="Script" path="res://assets/scripts/sea_unit.gd" id="1_jkdac"]
+
+[node name="Unit" type="Node2D"]
+z_index = 2
+script = ExtResource("1_jkdac")
+
+[node name="Hull" type="Sprite2D" parent="."]
+z_index = 2
+region_enabled = true

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cw6pxrq1xg2ao"
-path="res://.godot/imported/player_sub.png-6cc7bb1a5899a57e537130493155c224.ctex"
+uid="uid://bxsyxlvrfyfy2"
+path="res://.godot/imported/hull.png-6246073734e4b73f7c5f4fa7c23c0641.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/images/units/player_sub.png"
-dest_files=["res://.godot/imported/player_sub.png-6cc7bb1a5899a57e537130493155c224.ctex"]
+source_file="res://assets/images/units/PatrolBoat/hull.png"
+dest_files=["res://.godot/imported/hull.png-6246073734e4b73f7c5f4fa7c23c0641.ctex"]
 
 [params]
 
