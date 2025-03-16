@@ -2,22 +2,34 @@
 extends Node2D
 class_name SeaUnit
 
+# Define the ActionType enum
+enum ActionType {
+	MOVE_FORWARD,
+	MOVE_BACKWARD,
+	TURN_LEFT,
+	TURN_RIGHT,
+	FIRE_TORPEDO,
+	CHANGE_DEPTH  # Optional: for future mechanics like submarines
+}
+
 @onready var hull = $Hull
 
 @export var hex_coords: Vector2i = Vector2i(0, 0)
 @export var is_player: bool = false
+var projectiles_container: Node2D
 var tile_map: TileMapLayer
-var heading: float = 30.0
+var heading: int = 30
 var cube_position: Vector3 = Vector3(0, 0, 0)
 var health: int = 3
 var torpedoes: int = 5 if is_player else 0
 var stealth: bool = true if is_player else false
 var occupied_hexes: Array = []
 var composite_size: Vector2 = Vector2.ZERO
+var speed: float = 1.0
 
 func _ready():
 	if not hull:
-		printerr("ERROR: hull ($Hull) is null for ", name, "—check sea_unit.tscn")
+		printerr("ERROR: hull ($Hull) is null for ", name)
 		return
 	cube_position = Vector3(hex_coords.x, -hex_coords.x - hex_coords.y, hex_coords.y)
 	setup_composite()
@@ -26,6 +38,7 @@ func _ready():
 		update_occupied_hexes()
 	hull.rotation = deg_to_rad(heading)
 	hull.visible = true
+	print("Unit ", name, " initialized at ", position)
 
 func setup_composite():
 	if is_player:
@@ -67,6 +80,9 @@ func increase_position(val: Vector3):
 	cube_position += val
 	move_to(cube_position)
 
+func set_projectiles_container(container: Node2D):
+	projectiles_container = container
+
 func fire_torpedo(target_hex: Vector2i):
 	if torpedoes > 0:
 		torpedoes -= 1
@@ -75,12 +91,27 @@ func fire_torpedo(target_hex: Vector2i):
 		torpedo.tile_map = tile_map
 		torpedo.target_position = target_hex
 		torpedo.heading = heading
-		var heading_key = int(round(heading)) % 360
-		var cube_direction = HexUtils.DIRECTION_MAP.get(heading_key, Vector3(0, 0, 0))
-		torpedo.cube_position = cube_position + cube_direction
-		add_child(torpedo)
-		torpedo.update_position()
-		print("Torpedo fired at: ", target_hex, " torpedoes left: ", torpedoes)
+
+		var cube_direction = HexUtils.DIRECTION_MAP.get(heading)
+		if cube_direction != null:
+			# Calculate the bow position
+			var bow_offset = cube_direction * (composite_size.y / 64.0 / 2.0)  # Half the length in hexes
+			var bow_position = cube_position + bow_offset
+			var spawn_position = Vector3i(bow_position + cube_direction)  # One hex ahead of bow
+			# TODO: This needs to be more general to allow all subs and aircraft to launch torpedoes off the bow
+			if not is_player:  # Not Submarine, spawn along side the boat
+				spawn_position = cube_position + Vector3(1, 0, -1)  # Example: right side
+
+			torpedo.cube_position = spawn_position
+			print("Sub bow at cube: ", bow_position, " | Torpedo spawned at cube: ", spawn_position)
+			print("Torpedo fired at: ", target_hex, " torpedoes left: ", torpedoes)
+			if projectiles_container:
+				projectiles_container.add_child(torpedo)
+			else:
+				get_tree().root.add_child(torpedo)  # Fallbacko)
+			# torpedo.update_position()
+		else:
+			print("ERROR: firing entity's direction is not in the map!  Direction: ", heading)
 
 func update_occupied_hexes():
 	occupied_hexes.clear()
@@ -107,3 +138,22 @@ func update_occupied_hexes():
 					occupied_hexes.append(hex_coords - forward + side)
 					occupied_hexes.append(hex_coords + forward - side)
 					occupied_hexes.append(hex_coords - forward - side)
+
+func execute_action(action: ActionType, param = null):
+	match action:
+		ActionType.MOVE_FORWARD:
+			move(1)  # Move unit forward
+		ActionType.MOVE_BACKWARD:
+			move(-1)  # Move unit backward
+		ActionType.TURN_LEFT:
+			turn_left()  # Rotate unit left
+		ActionType.TURN_RIGHT:
+			turn_right()  # Rotate unit right
+		ActionType.FIRE_TORPEDO:
+			if param is Vector2i and torpedoes > 0:
+				fire_torpedo(param)  # Fire at a target offset
+		ActionType.CHANGE_DEPTH:
+			if param is int and is_player:
+				print("Depth change to: ", param)  # Placeholder
+				stealth = true
+	update_occupied_hexes()  # Update unit’s position on grid

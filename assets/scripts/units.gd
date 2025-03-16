@@ -18,7 +18,10 @@ func _ready():
 	player.hex_coords = Vector2i(0, 0)
 	player.is_player = true
 	player.tile_map = tile_map
+	player.speed = 1.0
+	player.torpedoes = 5
 	add_child(player)
+	print("Unit: ", player.name, " added!")
 	player.update_position()
 	units.append(player)
 
@@ -27,6 +30,8 @@ func _ready():
 	enemy.hex_coords = Vector2i(5, 5)
 	enemy.tile_map = tile_map
 	enemy.type = "PatrolBoat"
+	enemy.speed = 2.0
 	add_child(enemy)
+	print("Unit: ", enemy.name, " added!")
 	enemy.update_position()
 	units.append(enemy)

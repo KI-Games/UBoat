@@ -7,6 +7,8 @@ var units: Array
 @export var map_width: int = 200
 @export var map_height: int = 200
 
+var current_unit: SeaUnit = null
+
 func _ready():
 	if overview == null:
 		printerr("ERROR: Overview is null")
@@ -24,6 +26,10 @@ func _ready():
 	overview.size = Vector2(map_width, map_height)
 	overview.position = Vector2(0, 0)
 	size = Vector2(map_width, map_height)
+
+func set_current_unit(unit: SeaUnit):
+	current_unit = unit
+	# Update mini-map display as needed
 
 func _process(_delta):
 	if not camera:

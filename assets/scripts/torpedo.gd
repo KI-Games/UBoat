@@ -6,7 +6,7 @@ var target_position: Vector2i
 var heading: float
 var cube_position: Vector3
 var speed: float = 64.0  # 1 hex/s
-var turn_limit: float = 60.0  # Degrees per hex
+var angle_limit: float = 60.0  # Degrees per hex
 var move_timer: float = 0.0
 
 func _ready():
@@ -45,9 +45,9 @@ func move_one_hex():
 	var current_dir = HexUtils.DIRECTION_MAP.get(int(round(heading)) % 360, Vector3(0, 0, 0)).normalized()
 	var target_dir = to_target.normalized()
 	var angle_to_target = rad_to_deg(acos(clamp(current_dir.dot(target_dir), -1.0, 1.0)))
-	if angle_to_target > turn_limit:
+	if angle_to_target > angle_limit:
 		var turn_dir = sign(cross_2d(current_dir, target_dir))
-		heading += turn_dir * turn_limit
+		heading += turn_dir * angle_limit
 		heading = fmod(heading + 360.0, 360.0)
 		if $Hull:
 			$Hull.rotation = deg_to_rad(heading)
@@ -59,9 +59,12 @@ func move_one_hex():
 
 func update_position():
 	var axial_coords = Vector2i(cube_position.x, cube_position.z)
-	if tile_map.get_cell_source_id(axial_coords) != -1:
-		position = tile_map.map_to_local(axial_coords)
-		print("Torpedo moved to: ", position, " hex: ", axial_coords, " cube: ", cube_position)
+	if tile_map and tile_map.get_cell_source_id(axial_coords) != -1:
+		var world_pos = tile_map.map_to_local(axial_coords)
+		position = world_pos
+		print("Torpedo world pos: ", world_pos, " | Adjusted pos: ", position, " | hex: ", axial_coords, " | cube: ", cube_position)
+	else:
+		print("WARNING: Invalid hex coords for torpedo: ", axial_coords)
 
 func cross_2d(v1: Vector3, v2: Vector3) -> float:
 	return v1.x * v2.z - v1.z * v2.x

@@ -2,74 +2,52 @@
 extends Node
 class_name TurnManager
 
-@onready var units = $"../Units"
-@onready var camera = $"../Camera2D"
+# Signals to notify other nodes
+signal turn_started(unit: SeaUnit)  # Emitted when a unit's turn begins
+signal turn_ended(unit: SeaUnit)    # Emitted when a unit's turn ends
 
+var units: Array = []
 var turn_queue: Array = []
 var current_unit: SeaUnit = null
-var is_player_turn: bool = false
-var mini_map_container = null
 
-func _ready():
-	if not units or not camera:
-		printerr("ERROR: Units or Camera2D not found in TurnManager")
-		return
+func initialize(unit_list: Array):
+	units = unit_list
+	print("Turn manager initialized with ", units.size(), " units!")
 	build_turn_queue()
-
-	if mini_map_container:
-		$"../UI/MiniMapContainer".set_current_unit(current_unit)
 
 func build_turn_queue():
 	turn_queue.clear()
-	for unit in units.units:
+	for unit in units:
+		# Add unit to queue based on speed (e.g., speed = 2 means 2 turns)
 		for _i in range(unit.speed):
 			turn_queue.append(unit)
-	# Shuffle only within same-speed groups if desired; keeping it simple for now
+	print("Turn queue built with ", turn_queue.size(), " entries")
 	if turn_queue.size() > 0:
 		start_next_turn()
+	else:
+		print("Error: Turn queue is empty!")
 
 func start_next_turn():
 	if turn_queue.size() == 0:
-		build_turn_queue()
+		build_turn_queue()  # Rebuild if queue is empty
 		return
-
-	current_unit = turn_queue.pop_front()
-	if mini_map_container:
-		$"../UI/MiniMapContainer".set_current_unit(current_unit)
-	
-	is_player_turn = current_unit.is_player
-	if is_player_turn:
-		print("Player's turn!")
-	else:
-		await process_enemy_turn()
-		await get_tree().create_timer(0.5).timeout
-		start_next_turn()
+	current_unit = turn_queue.pop_front()  # Get next unit
+	print("Starting turn for ", current_unit.name)
+	turn_started.emit(current_unit)
+	if not current_unit.is_player:
+		process_enemy_turn()  # Auto-process enemy turns
 
 func process_enemy_turn():
+	print("Processing enemy turn...")
+	# Example enemy AI: move or patrol
 	if current_unit.has_method("patrol"):
 		current_unit.patrol()
-	update_camera()
-	check_collisions()
+	await get_tree().create_timer(0.5).timeout  # Brief delay for visibility
+	turn_ended.emit(current_unit)
+	print("... done!")
+	start_next_turn()
 
-func execute_player_action(action: int, param = null):
-	if is_player_turn and current_unit:
-		current_unit.execute_action(action, param)
-		update_camera()
-		check_collisions()
-		await get_tree().create_timer(0.5).timeout
+func end_current_turn():
+	if current_unit:
+		emit_signal("turn_ended", current_unit)
 		start_next_turn()
-
-func update_camera():
-	if camera and current_unit:
-		camera.position = current_unit.position
-
-func check_collisions():
-	if not units or units.units.size() == 0:
-		return
-	var player = units.units[0]
-	for enemy in units.units:
-		if not enemy.is_player:
-			for player_hex in player.occupied_hexes:
-				if enemy.occupied_hexes.has(player_hex):
-					print("Collision detected at ", player_hex)
-					return
